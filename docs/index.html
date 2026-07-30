@@ -235,6 +235,15 @@
         </div>
 
         <div class="form-group">
+            <label for="corsProxy">CORS Proxy Service</label>
+            <select id="corsProxy">
+                <option value="https://corsproxy.io/?">corsproxy.io (Recommended)</option>
+                <option value="https://api.allorigins.win/raw?url=">allorigins.win</option>
+                <option value="direct">Direct (No Proxy - Requires extension or relaxed CORS)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label for="targetUrl">Target Web URL</label>
             <input type="text" id="targetUrl" placeholder="https://example.com" value="https://nowsecure.nl">
         </div>
@@ -284,6 +293,7 @@
 <script>
     async function sendRequest() {
         const serverUrl = document.getElementById('serverUrl').value.trim();
+        const corsProxy = document.getElementById('corsProxy').value;
         const targetUrl = document.getElementById('targetUrl').value.trim();
         const timeout = parseInt(document.getElementById('timeout').value) || 60000;
         const cmd = document.getElementById('cmdType').value;
@@ -299,7 +309,6 @@
             return;
         }
 
-        // Update UI state
         submitBtn.disabled = true;
         statusBar.style.display = 'flex';
         statusDot.className = 'status-indicator loading';
@@ -311,8 +320,14 @@
             maxTimeout: timeout
         };
 
+        // Determine destination URL based on CORS Proxy selection
+        let fetchUrl = serverUrl;
+        if (corsProxy !== 'direct') {
+            fetchUrl = corsProxy + encodeURIComponent(serverUrl);
+        }
+
         try {
-            const response = await fetch(serverUrl, {
+            const response = await fetch(fetchUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -330,17 +345,13 @@
                 statusDot.className = 'status-indicator success';
                 statusText.innerText = 'Successfully bypassed Cloudflare!';
 
-                // Display results
                 resultsCard.style.display = 'block';
 
-                // Raw JSON
                 document.getElementById('rawJson').value = JSON.stringify(data, null, 2);
 
-                // Raw HTML
                 const htmlContent = data.solution.response || '';
                 document.getElementById('rawHtml').value = htmlContent;
 
-                // Render in iframe
                 const iframe = document.getElementById('previewFrame');
                 iframe.srcdoc = htmlContent;
             } else {
@@ -349,7 +360,7 @@
 
         } catch (err) {
             statusDot.className = 'status-indicator error';
-            statusText.innerText = 'Error: ' + err.message;
+            statusText.innerText = 'Error: ' + err.message + ' (If using direct connection, browser CORS may block the request)';
             console.error(err);
         } finally {
             submitBtn.disabled = false;
