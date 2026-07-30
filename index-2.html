@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlareSolverr Web Proxy Interface</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --primary-color: #38bdf8;
+            --primary-hover: #0284c7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.99);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .status-indicator.loading {
+            background-color: #f59e0b;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .status-indicator.success {
+            background-color: var(--accent-green);
+        }
+
+        .status-indicator.error {
+            background-color: var(--accent-red);
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #ffffff;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #38bdf8;
+            font-family: "Courier New", Courier, monospace;
+            padding: 12px;
+            font-size: 0.85rem;
+            resize: vertical;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>FlareSolverr Web Interface</h1>
+        <p>Bypass Cloudflare protection right from your browser</p>
+    </header>
+
+    <div class="card">
+        <div class="form-group">
+            <label for="serverUrl">FlareSolverr Server Endpoint</label>
+            <input type="text" id="serverUrl" value="https://flaresolverr-latest-3fs8.onrender.com/v1" placeholder="https://your-instance.onrender.com/v1">
+        </div>
+
+        <div class="form-group">
+            <label for="targetUrl">Target Web URL</label>
+            <input type="text" id="targetUrl" placeholder="https://example.com" value="https://nowsecure.nl">
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="timeout">Timeout (ms)</label>
+                <input type="number" id="timeout" value="60000" step="1000">
+            </div>
+            <div class="form-group">
+                <label for="cmdType">Command Type</label>
+                <select id="cmdType">
+                    <option value="request.get">request.get</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn" id="submitBtn" onclick="sendRequest()">Fetch Solved Page</button>
+
+        <div class="status-bar" id="statusBar" style="display: none;">
+            <div class="status-indicator" id="statusDot"></div>
+            <span id="statusText">Ready</span>
+        </div>
+    </div>
+
+    <div class="card" id="resultsCard" style="display: none;">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('preview')">Rendered Preview</button>
+            <button class="tab-btn" onclick="switchTab('html')">Raw HTML</button>
+            <button class="tab-btn" onclick="switchTab('json')">Full API Response</button>
+        </div>
+
+        <div id="tab-preview" class="tab-content active">
+            <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+
+        <div id="tab-html" class="tab-content">
+            <textarea id="rawHtml" readonly></textarea>
+        </div>
+
+        <div id="tab-json" class="tab-content">
+            <textarea id="rawJson" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function sendRequest() {
+        const serverUrl = document.getElementById('serverUrl').value.trim();
+        const targetUrl = document.getElementById('targetUrl').value.trim();
+        const timeout = parseInt(document.getElementById('timeout').value) || 60000;
+        const cmd = document.getElementById('cmdType').value;
+
+        const submitBtn = document.getElementById('submitBtn');
+        const statusBar = document.getElementById('statusBar');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const resultsCard = document.getElementById('resultsCard');
+
+        if (!serverUrl || !targetUrl) {
+            alert('Please enter both the Server Endpoint and the Target URL.');
+            return;
+        }
+
+        // Update UI state
+        submitBtn.disabled = true;
+        statusBar.style.display = 'flex';
+        statusDot.className = 'status-indicator loading';
+        statusText.innerText = 'Connecting to FlareSolverr... (Render may take 30-60s to wake up if asleep)';
+
+        const payload = {
+            cmd: cmd,
+            url: targetUrl,
+            maxTimeout: timeout
+        };
+
+        try {
+            const response = await fetch(serverUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server returned HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'ok' && data.solution) {
+                statusDot.className = 'status-indicator success';
+                statusText.innerText = 'Successfully bypassed Cloudflare!';
+
+                // Display results
+                resultsCard.style.display = 'block';
+
+                // Raw JSON
+                document.getElementById('rawJson').value = JSON.stringify(data, null, 2);
+
+                // Raw HTML
+                const htmlContent = data.solution.response || '';
+                document.getElementById('rawHtml').value = htmlContent;
+
+                // Render in iframe
+                const iframe = document.getElementById('previewFrame');
+                iframe.srcdoc = htmlContent;
+            } else {
+                throw new Error(data.message || 'FlareSolverr failed to solve the request.');
+            }
+
+        } catch (err) {
+            statusDot.className = 'status-indicator error';
+            statusText.innerText = 'Error: ' + err.message;
+            console.error(err);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+</script>
+
+</body>
+</html>
